@@ -5,315 +5,160 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Credential Manager Documentation</title>
-    <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.5.1/styles/default.min.css"
         id="highlight-theme-light">
     <link rel="stylesheet"
         href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.5.1/styles/atom-one-dark.min.css"
         id="highlight-theme-dark" disabled>
+    <link rel="stylesheet" href="styles.css">
 </head>
 
 <body>
     <header>
         <div style="display: flex; justify-content: space-between; align-items: center;">
             <h1>Credential Manager Documentation</h1>
-            <div style="display: flex; align-items: center; gap: 8px;">
-                <button id="theme-toggle" class="icon-button">
-                    <span class="material-icons">brightness_medium</span>
-                </button>
-                <div id="github-stats">
-                    <a href="https://github.com/djsmk123/flutter_credential_manager_compose" class="github-button"
-                        target="_blank">
-                        <img src="https://img.shields.io/github/forks/djsmk123/flutter_credential_manager_compose?style=social"
-                            alt="Fork">
-                    </a>
-                    <span id="star-count"></span>
-                    <span id="fork-count"></span>
-                </div>
-            </div>
+            <button id="theme-toggle">Toggle Theme</button>
         </div>
-
         <nav>
             <ul>
-
                 <li><a href="#overview">Overview</a></li>
+                <li><a href="#breaking-changes">Breaking Changes</a></li>
                 <li><a href="#getting-started">Getting Started</a></li>
-                <li><a href="#setup-android">Setup Android</a></li>
-                <li><a href="#usage">Usage in Flutter</a></li>
-                <li><a href="#google-signin">Google Sign-In</a></li>
-                <li><a href="#passkey">Passkey Integration</a></li>
-                <li><a href="#error-handling">Error Handling</a></li>
-                <li><a href="#contributors">Contributors</a></li>
+                <li><a href="#android-setup">Android Setup</a></li>
+                <li><a href="#ios-setup">iOS Setup</a></li>
+                <li><a href="#usage">Usage</a></li>
+                <li><a href="#passkey">Passkey</a></li>
+                <li><a href="#visual-examples">Visual Examples</a></li>
+                <li><a href="#upcoming-features">Upcoming Features</a></li>
+                <li><a href="#react-native-plugin">React Native Plugin</a></li>
             </ul>
         </nav>
     </header>
+
     <main>
         <section id="overview">
-            <h2>Credential Manager Overview</h2>
+            <h2>Overview</h2>
+            <div>
+                <span class="platform-badge android">Android</span>
+                <span class="platform-badge ios">iOS</span>
+            </div>
             <p>Credential Manager is a Jetpack API that supports multiple sign-in methods, such as username and
                 password, passkeys, and federated sign-in solutions (like Sign-in with Google) in a single API,
-                simplifying integration for developers.</p>
-            <p>For users, Credential Manager unifies the sign-in interface across authentication methods, making it
-                clearer and easier to sign into apps, regardless of the chosen method.</p>
-            <p><strong>Note:</strong> This package is currently only supported for Android.</p>
+                simplifying integration for developers on Android. For iOS, it uses Keychain for storing credentials.
+            </p>
         </section>
+
+        <section id="breaking-changes">
+            <h2>Breaking Changes</h2>
+            <div class="breaking-changes">
+                <ul>
+                    <li>Removed Encrypted Credentials for Android, as it was using old API and not needed Credentials
+                        API are enough to handle all.</li>
+                    <li><code>getPasswordCredentials</code> changed to <code>getCredentials</code> for both Android and
+                        iOS, as now it will return only <code>PasskeyCredential</code> on iOS and on Android it will
+                        return all the types of credentials that are saved and parameter passed into function.</li>
+                </ul>
+            </div>
+        </section>
+
         <section id="getting-started">
             <h2>Getting Started</h2>
-            <p>Add the dependency to your pubspec.yaml file:</p>
             <pre><code class="language-yaml">dependencies:
-            credential_manager: &lt;latest_version&gt;</code></pre>
+  credential_manager: &lt;latest_version&gt;</code></pre>
             <p>Or run:</p>
             <pre><code class="language-bash">flutter pub add credential_manager</code></pre>
         </section>
 
-        <section id="setup-android">
-            <h2>Setup Android</h2>
+        <section id="android-setup">
+            <h2>Android Setup</h2>
             <ol>
                 <li>
                     <p>Add proguard rules:</p>
-                    <p>Create or update <code>android/app/proguard-rules.pro</code>:</p>
                     <pre><code class="language-proguard">-if class androidx.credentials.CredentialManager
-                -keep class androidx.credentials.playservices. {
-                ;
-                }</code></pre>
+-keep class androidx.credentials.playservices.** {
+  *;
+}</code></pre>
                 </li>
                 <li>
                     <p>Update <code>android/app/build.gradle</code>:</p>
                     <pre><code class="language-gradle">android {
-                buildTypes {
-                release {
-                minifyEnabled true
-                proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-                }
-                }
-                }</code></pre>
+  buildTypes {
+    release {
+      minifyEnabled true
+      proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+    }
+  }
+}</code></pre>
                 </li>
             </ol>
         </section>
 
-        <section id="usage">
-            <h2>Usage in Flutter</h2>
+        <section id="ios-setup">
+            <h2>iOS Setup</h2>
             <ol>
                 <li>
-                    <p>Import the package:</p>
-                    <pre><code class="language-dart">import 'package:credential_manager/credential_manager.dart';</code></pre>
+                    <p>Add Associated Domain to XCode</p>
+                    <img src="https://blogs.halodoc.io/content/images/2024/05/Screenshot-2024-05-15-at-14.31.08-1.png"
+                        alt="iOS Associated Domain">
                 </li>
                 <li>
-                    <p>Create a <code>CredentialManager</code> instance:</p>
-                    <pre><code class="language-dart">CredentialManager credentialManager = CredentialManager();</code></pre>
+                    <p>Configure Apple App Site Association</p>
+                    <img src="https://blogs.halodoc.io/content/images/2024/05/Screenshot-2024-05-15-at-14.10.19-2.png"
+                        alt="iOS Apple App Site Association">
                 </li>
-                <li>
-                    <p>Check if the platform is supported:</p>
-                    <pre><code class="language-dart">if (credentialManager.isSupportedPlatform) {
-            // Supported
-            }</code></pre>
-                </li>
-                <li>
-                    <p>Initialize the Credential Manager:</p>
-                    <pre><code class="language-dart">await credentialManager.init(
-            preferImmediatelyAvailableCredentials: true,
-            googleClientId: googleClientId // Optional for Google Sign-In
-            );</code></pre>
-                </li>
-                <li>
-                    <p>Save credentials:</p>
-                    <pre><code class="language-dart">await credentialManager.savePasswordCredentials(
-            PasswordCredential(username: username, password: password)
-            );</code></pre>
-                </li>
-                <li>
-                    <p>Get saved credentials:</p>
-                    <pre><code class="language-dart">Credentials credential = await credentialManager.getPasswordCredentials();</code></pre>
-                </li>
-                <li>
-                    <p>Logout:</p>
-                    <pre><code class="language-dart">await credentialManager.logout();</code></pre>
-                </li>
+                <li>Enable Keychain Sharing in XCode using sign and capabilities tab.</li>
             </ol>
+            <div class="note">
+                <p><strong>Note:</strong> Passkey is a new feature introduced by Apple in iOS 16 and later versions. It
+                    provides a more secure and convenient way to handle credentials. This plugin supports passkey
+                    operations such as saving and retrieving passkey credentials on iOS 16+ devices. Make sure your app
+                    is targeting iOS 16 or higher to utilize this feature.</p>
+            </div>
         </section>
-        <section id="google-signin">
-            <h2>Google Sign-In Setup (Optional)</h2>
-            <ol>
-                <li>Access <a href="https://console.cloud.google.com/" target="blank">Google Cloud Console</a></li>
-                <li>Create or select a project</li>
-                <li>Configure OAuth Consent Screen</li>
-                <li>Create Credentials (OAuth client ID)</li>
-                <li>Set Application Type to Android</li>
-                <li>Configure Android App (package name and SHA-1)</li>
-                <li>Create Web Application Credentials</li>
-                <li>Obtain Client ID for use in Flutter app</li>
-            </ol>
-            <p>Implementation in Flutter:</p>
-            <pre><code class="language-dart">await credentialManager.init(
-            preferImmediatelyAvailableCredentials: true,
-            googleClientId: 'YOUR_WEB_CLIENT_ID_HERE'
-            );</code></pre>
+
+        <section id="visual-examples">
+            <h2>Visual Examples</h2>
+
+            <h3>Android AutoFill Service</h3>
+            <div class="image-gallery">
+                <img src="https://i.ibb.co/fCs0kqV/5.jpg" alt="Get Credential 1">
+                <img src="https://i.ibb.co/KNkgtdV/IMG-20240128-164347.jpg" alt="Google Save Credential 1">
+                <img src="https://i.ibb.co/X2YVw1B/IMG-20240128-164412.jpg" alt="Get Google/Password Saved Credential">
+                <img src="https://i.ibb.co/HgYkBgM/IMG-20240128-164512.jpg"
+                    alt="Get Google/Password Saved Credential Success">
+            </div>
+
+            <h3>iOS AutoFill Service</h3>
+            <div class="image-gallery">
+                <img src="https://i.postimg.cc/rz6STZXV/Whats-App-Image-2024-10-06-at-12-04-23.jpg"
+                    alt="iOS Credential 1">
+                <img src="https://i.postimg.cc/kM2znV3z/Whats-App-Image-2024-10-06-at-12-04-43.jpg"
+                    alt="iOS Credential 2">
+            </div>
+
+            <h3>Passkey Examples</h3>
+            <h4>Android</h4>
+            <div class="image-gallery">
+                <img src="https://i.ibb.co/XCLvkB3/Whats-App-Image-2024-06-02-at-21-46-17.jpg" alt="Passkey Creation">
+                <img src="https://i.ibb.co/0JKNDff/Whats-App-Image-2024-06-02-at-21-46-17-1.jpg" alt="Passkey Success">
+            </div>
+
+            <h4>iOS</h4>
+            <div class="video-container">
+                <iframe width="560" height="315" src="https://www.youtube.com/embed/T6COr7pH5rQ" frameborder="0"
+                    allowfullscreen></iframe>
+            </div>
         </section>
-        <section id="passkey">
-            <h2>Passkey Integration</h2>
-            <h3>Prerequisites</h3>
-            <ul>
-                <li>An Android app with a unique package name</li>
-                <li>A website (sign-in domain) for authentication</li>
+
+        <section id="upcoming-features" class="upcoming-features">
+            <h2>Upcoming Features</h2>
+            <ul class="features-list">
+                <li><span class="platform-badge ios">iOS</span> Apple Sign-In Support</li>
+                <li><span class="platform-badge web">Web</span> Support</li>
             </ul>
-            <h3>Steps</h3>
-            <ol>
-                <li>Create and host a Digital Asset Links JSON file</li>
-                <li>Configure your host to allow Google to retrieve the file</li>
-            </ol>
-            <h3>Create Passkey</h3>
-            <pre><code class="language-dart">final res = await credentialManager.savePasskeyCredentials(
-            request: CredentialCreationOptions.fromJson({
-            // Passkey creation options
-            })
-            );</code></pre>
-            <h3>Fetch Generated Passkey</h3>
-            <pre><code class="language-dart">CredentialLoginOptions? passKeyLoginOption = CredentialLoginOptions(
-            challenge: "&lt;challenge&gt;",
-            rpId: "&lt;domain.com&gt;",
-            userVerification: "required",
-            );
-            Credentials credential = await credentialManager.getEncryptedCredentials(
-            secretKey: secretKey,
-            ivKey: ivKey,
-            passKeyOption: passKeyLoginOption
-            );
-            bool isPublicKeyBasedCredentials = credential.publicKeyCredential != null;</code></pre>
         </section>
-        <section id="error-handling">
-            <h2>Error Handling</h2>
-            <p>When an exception occurs, a <code>CredentialException</code> is thrown with the following fields:</p>
-            <ul>
-                <li><code>int code</code>: A numeric identifier for the error</li>
-                <li><code>String message</code>: A descriptive message about the error</li>
-            </ul>
-            <h3>Error Codes and Descriptions</h3>
-            <table>
-                <tr>
-                    <th>Code</th>
-                    <th>Message</th>
-                    <th>Description</th>
-                </tr>
-                <tr>
-                    <td>101</td>
-                    <td>Initialization failure</td>
-                    <td>The initialization process encountered an error.</td>
-                </tr>
-                <tr>
-                    <td>102</td>
-                    <td>Plugin exception</td>
-                    <td>An exception occurred within the plugin.</td>
-                </tr>
-                <tr>
-                    <td>103</td>
-                    <td>Not implemented</td>
-                    <td>The requested functionality is not implemented.</td>
-                </tr>
-                <tr>
-                    <td>201</td>
-                    <td>Login cancelled</td>
-                    <td>The login process was cancelled by the user.</td>
-                </tr>
-                <tr>
-                    <td>202</td>
-                    <td>No credentials found</td>
-                    <td>No valid credentials were found for authentication.</td>
-                </tr>
-                <tr>
-                    <td>203</td>
-                    <td>Mismatched credentials</td>
-                    <td>The provided credentials do not match the expected format.</td>
-                </tr>
-                <tr>
-                    <td>204</td>
-                    <td>Login failed</td>
-                    <td>The login attempt was unsuccessful.</td>
-                </tr>
-                <tr>
-                    <td>205</td>
-                    <td>Temporarily blocked</td>
-                    <td>The user is temporarily blocked due to too many canceled sign-in prompts.</td>
-                </tr>
-                <tr>
-                    <td>301</td>
-                    <td>Save Credentials cancelled</td>
-                    <td>The process of saving credentials was cancelled by the user.</td>
-                </tr>
-                <tr>
-                    <td>302</td>
-                    <td>Create Credentials failed</td>
-                    <td>Failed to create new credentials.</td>
-                </tr>
-                <tr>
-                    <td>401</td>
-                    <td>Encryption failed</td>
-                    <td>Failed to encrypt the value.</td>
-                </tr>
-                <tr>
-                    <td>402</td>
-                    <td>Decryption failed</td>
-                    <td>Failed to decrypt the value.</td>
-                </tr>
-                <tr>
-                    <td>501</td>
-                    <td>Invalid Google ID token response</td>
-                    <td>Received an invalid response from Custom Credentials.</td>
-                </tr>
-                <tr>
-                    <td>502</td>
-                    <td>Invalid request</td>
-                    <td>An invalid request was made while saving Google credentials.</td>
-                </tr>
-                <tr>
-                    <td>503</td>
-                    <td>Google client not initialized</td>
-                    <td>The Google Web token ID is invalid or missing.</td>
-                </tr>
-                <tr>
-                    <td>504</td>
-                    <td>Credentials operation failed</td>
-                    <td>The operation failed due to an unspecified error.</td>
-                </tr>
-                <tr>
-                    <td>505</td>
-                    <td>Google credential decode error</td>
-                    <td>Error occurred while decoding the Google credential.</td>
-                </tr>
-                <tr>
-                    <td>601</td>
-                    <td>Passkey operation cancelled</td>
-                    <td>The user cancelled the passkey operation.</td>
-                </tr>
-                <tr>
-                    <td>602</td>
-                    <td>Passkey creation failed</td>
-                    <td>Failed to create a new passkey.</td>
-                </tr>
-                <tr>
-                    <td>603</td>
-                    <td>Passkey fetch failed</td>
-                    <td>Failed to fetch the passkey with the provided parameters.</td>
-                </tr>
-                <tr>
-                    <td>701</td>
-                    <td>Logout failed</td>
-                    <td>An error occurred while calling `clearCredentialState()` on Android.</td>
-                </tr>
-            </table>
-            <h3>Handling Exceptions</h3>
-            <pre><code class="language-dart">try {
-            // Credential Manager operation
-            await credentialManager.someOperation();
-            } on CredentialException catch (e) {
-            print('Error Code: ${e.code}');
-            print('Error Message: ${e.message}');
-            // Handle the error appropriately
-            } catch (e) {
-            // Handle other unexpected errors
-            print('Unexpected error: $e');
-            }</code></pre>
-        </section>
-        <section id="contributors">
+
+        <section id="contributors" class="contributors-section">
             <h2>Contributors</h2>
             <div class="contributors-grid">
                 <div class="contributor">
@@ -334,10 +179,22 @@
                 </div>
             </div>
         </section>
+
+        <section id="react-native-plugin">
+            <h2>React Native Plugin</h2>
+            <p>For React Native developers, a similar plugin is available to integrate Credential Manager into your
+                React Native applications. You can find the repository and installation instructions on GitHub:</p>
+            <p><a href="https://github.com/Djsmk123/react_native_credential_manager_compose" target="_blank">React
+                    Native
+                    Credential Manager Plugin</a></p>
+        </section>
     </main>
+
     <footer>
-        <p>&copy; 2024 Credential Manager Documentation</p>
+        <p>&copy; 2024 Credential Manager Documentation. For bug reports, feature requests, or questions, please open an
+            issue on GitHub.</p>
     </footer>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.5.1/highlight.min.js"></script>
     <script src="script.js"></script>
 </body>
